@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { db } from '@/lib/db';
 
 function EmailStep({ onSendEmail }: { onSendEmail: (email: string) => void }) {
@@ -9,22 +10,27 @@ function EmailStep({ onSendEmail }: { onSendEmail: (email: string) => void }) {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     const inputEl = inputRef.current;
     if (!inputEl) return;
-    const email = inputEl.value.trim();
+
+    const email = inputEl.value.trim().toLowerCase();
     if (!email) return;
+
     setSending(true);
-    onSendEmail(email);
-    db.auth
-      .sendMagicCode({ email })
-      .catch((err) => {
-        setError(err?.body?.message ?? 'Failed to send code. Please try again.');
-        onSendEmail('');
-      })
-      .finally(() => setSending(false));
+    try {
+      await db.auth.sendMagicCode({ email });
+      onSendEmail(email);
+    } catch (err: unknown) {
+      const message =
+        (err as { body?: { message?: string } })?.body?.message ??
+        'Failed to send code. Please try again.';
+      setError(message);
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -66,33 +72,52 @@ function CodeStep({
   sentEmail: string;
   onBack: () => void;
 }) {
+  const router = useRouter();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     const inputEl = inputRef.current;
     if (!inputEl) return;
-    const code = inputEl.value.trim();
-    if (!code) return;
+
+    const code = inputEl.value.replace(/\D/g, '').slice(0, 6);
+    if (code.length !== 6) {
+      setError('Please enter all 6 digits from the email.');
+      return;
+    }
+
     setVerifying(true);
-    db.auth
-      .signInWithMagicCode({ email: sentEmail, code })
-      .catch((err) => {
-        setError(err?.body?.message ?? 'Invalid or expired code. Please try again.');
-        inputEl.value = '';
-      })
-      .finally(() => setVerifying(false));
+    try {
+      await db.auth.signInWithMagicCode({
+        email: sentEmail.trim().toLowerCase(),
+        code,
+      });
+      router.replace('/');
+    } catch (err: unknown) {
+      const message =
+        (err as { body?: { message?: string } })?.body?.message ??
+        'Invalid or expired code. Please request a new one and try again.';
+      if (message.toLowerCase().includes('record not found')) {
+        setError('This code is invalid or already used. Request a new code and try again.');
+      } else {
+        setError(message);
+      }
+      inputEl.value = '';
+    } finally {
+      setVerifying(false);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col space-y-4">
       <h2 className="text-2xl font-bold tracking-tight">Enter your code</h2>
       <p className="text-slate-600 dark:text-slate-400">
-        We sent a 6-digit code to <strong className="text-slate-900 dark:text-slate-100">{sentEmail}</strong>.
-        Check your inbox and enter it below.
+        We sent a 6-digit code to{' '}
+        <strong className="text-slate-900 dark:text-slate-100">{sentEmail}</strong>. Check your
+        inbox and enter it below.
       </p>
       {error && (
         <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
@@ -130,7 +155,15 @@ function CodeStep({
 }
 
 export default function LoginPage() {
+  const router = useRouter();
   const [sentEmail, setSentEmail] = useState('');
+  const { user } = db.useAuth();
+
+  useEffect(() => {
+    if (user) {
+      router.replace('/');
+    }
+  }, [router, user]);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
