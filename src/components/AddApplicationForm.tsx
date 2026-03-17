@@ -99,7 +99,7 @@ export function AddApplicationForm({ size = 'default' }: AddApplicationFormProps
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-base font-semibold text-white shadow-md transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-lg active:translate-y-0 dark:bg-indigo-500 dark:hover:bg-indigo-600"
+          className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-base font-semibold text-white shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-md active:translate-y-0 dark:bg-indigo-500 dark:hover:bg-indigo-600"
         >
           <span className="text-xl leading-none">+</span>
           Add Application
@@ -108,7 +108,7 @@ export function AddApplicationForm({ size = 'default' }: AddApplicationFormProps
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 font-medium text-white shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-md active:translate-y-0 dark:bg-indigo-500 dark:hover:bg-indigo-600"
+        className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-md active:translate-y-0 dark:bg-indigo-500 dark:hover:bg-indigo-600"
       >
         <span className="text-lg leading-none">+</span>
         Add application
