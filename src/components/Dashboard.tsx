@@ -33,7 +33,7 @@ export function Dashboard() {
               </svg>
             </span>
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl dark:text-slate-100">
-              Job Application Tracker
+              ApplyFlow
             </h1>
           </div>
           <p className="max-w-xl text-sm leading-relaxed text-slate-600 sm:text-base dark:text-slate-400">
